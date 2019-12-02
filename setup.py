@@ -6,7 +6,6 @@ setup(name='merger',
 	include_package_data=True,
 	install_requires=[
 		'numpy',
-		'merger',
 		'pandas',
 		'iminuit',
 		'scipy',
