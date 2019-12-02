@@ -16,8 +16,8 @@ if __name__ == '__main__':
 	nb_samples_job = args.nb_samples_job
 	current_job = args.current_job
 
-	assert nb_samples_job>0, 'Invalid number of samples per job.'
-	assert current_job>0, 'Invalid current job number.'
+	assert nb_samples_job > 0, 'Invalid number of samples per job.'
+	assert current_job > 0, 'Invalid current job number.'
 
 	params_file_idx = (current_job-1)//5
 	params_line_idx = (current_job-1)%5
@@ -27,7 +27,6 @@ if __name__ == '__main__':
 
 	start = params_line_idx * nb_samples_job
 	end = (params_line_idx + 1) * nb_samples_job
-
 
 	output_name = args.name
 	parameter_file = args.parameter_file+'_'+str(params_file_idx)+'.npy'
