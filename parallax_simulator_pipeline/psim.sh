@@ -2,7 +2,7 @@
 
 #$-N prod_parallax_distance_u02_minmax_run2
 #$-P P_eros
-#$-t 1-1:1
+#$-t 1-100:1
 #$-q long
 #$-o $HOME/work/parallax_jobs/run2/logs_minmax
 #$-e $HOME/work/parallax_jobs/run2/logs_minmax

@@ -198,8 +198,7 @@ def max_parallax(params):
 	m.migrad()
 	return [m.get_fmin().fval, dict(m.values)['t']]
 
-
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 # st = time.time()
 # pms = np.load('params1M_0.npy', allow_pickle=True)[:1000]

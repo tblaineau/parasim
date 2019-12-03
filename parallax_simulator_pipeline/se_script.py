@@ -1,7 +1,10 @@
 import argparse
 import os
+import logging
 import numpy as np
 from parallax_simulator_pipeline.similarity_estimator import count_peaks, compute_distances
+
+logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -24,7 +27,7 @@ if __name__ == '__main__':
 	nb_samples_job = int(nb_line_pmsfile * nb_files / nb_jobs)
 	factor = int(nb_line_pmsfile / nb_samples_job)
 
-	print(nb_line_pmsfile, nb_files, nb_jobs, nb_samples_job)
+	logging.debug(nb_line_pmsfile, nb_files, nb_jobs, nb_samples_job)
 
 	assert nb_line_pmsfile > 0, 'Invalid number of line per file.'
 	assert current_job > 0, 'Invalid current job number.'
