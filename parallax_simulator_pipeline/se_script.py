@@ -6,10 +6,10 @@ from parallax_simulator_pipeline.similarity_estimator import count_peaks, comput
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
-	parser.add_argument('--name', '-n', type=str, required=True)
-	parser.add_argument('--parameter_file', '-pf', type=str, required=True)
-	parser.add_argument('--nb_samples_job', '-nsj', type=int, required=True)
-	parser.add_argument('--current_job', '-cj', type=int, required=True)
+	parser.add_argument('--name', '-n', type=str, required=True, help="output file name")
+	parser.add_argument('--parameter_file', '-pf', type=str, required=True, help="template name of parameter file, ex : parameters1M_")
+	parser.add_argument('--nb_samples_job', '-nsj', type=int, required=True, help="Number of light curve to process in one job.")
+	parser.add_argument('--current_job', '-cj', type=int, required=True, help="job number")
 
 	args = parser.parse_args()
 
@@ -19,8 +19,8 @@ if __name__ == '__main__':
 	assert nb_samples_job > 0, 'Invalid number of samples per job.'
 	assert current_job > 0, 'Invalid current job number.'
 
-	params_file_idx = (current_job-1)//5
-	params_line_idx = (current_job-1)%5
+	params_file_idx = (current_job-1) // 5
+	params_line_idx = (current_job-1) % 5
 
 	print(f"File : {params_file_idx}")
 	print(f"line_start : {params_line_idx}")
