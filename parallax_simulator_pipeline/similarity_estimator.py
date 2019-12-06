@@ -22,7 +22,7 @@ def simple_difference(t, u0, t0, tE, pu0, pt0, ptE, pdu, ptheta, blend):
 
 @nb.njit
 def squared_difference(t, u0, t0, tE, pu0, pt0, ptE, pdu, ptheta, blend):
-	"""njitted squared difference between parallax and simple. (so not an aboslute difference)"""
+	"""njitted squared difference between parallax and simple. (so not an absolute difference)"""
 	t = np.array([t])
 	return (simple_difference(t, u0, t0, tE, pu0, pt0, ptE, pdu, ptheta, blend)) ** 2
 
@@ -160,13 +160,17 @@ def compute_distances(output_name, distance, parameter_list, nb_samples=None, st
 		parameter_list = parameter_list[:nb_samples]
 	df = pd.DataFrame.from_records(parameter_list)
 
+	st1 = time.time()
+
 	ds = []
 	i = 0
 	for params in parameter_list:
+		print(params)
 		i += 1
-		params = {key: params[key] for key in ['u0', 't0', 'tE', 'delta_u', 'theta', 'blend_red_M']}
-		params['mag'] = 19.
-		ds.append(distance(params, **distance_args))
+		n_params = {key: params[key] for key in ['u0', 't0', 'tE', 'delta_u', 'theta']}
+		n_params['blend'] = params['blend_red_M']
+		n_params['mag'] = 19.
+		ds.append(distance(n_params, **distance_args))
 		if i % 100 == 0:
 			logging.debug(i)
 
