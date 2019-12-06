@@ -200,6 +200,13 @@ class Microlensing_generator:
 		return params
 
 
+def generate_xvts(output_name, pool_size):
+	"""
+	Generate list of x, vt pairs of size *pool_size* and save it under *output_name*
+	"""
+	np.save(output_name, np.array(metropolis_hastings(pdf_xvt, randomizer_gauss, pool_size, np.array([0.5, 100]), (10.))))
+
+
 # We define parallax parameters.
 PERIOD_EARTH = 365.2422
 alphaS = 80.8941667*np.pi/180.
