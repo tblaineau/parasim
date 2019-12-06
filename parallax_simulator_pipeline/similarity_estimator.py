@@ -67,7 +67,7 @@ def integral_curvefit(params, epsabs=1e-8):
 	m.migrad()
 	errs = dict(m.errors)
 
-	if errs["t0"] >= params["tE"]:
+	if errs["t0"] >= np.power(10,params["tE"]):
 		de_bounds = [(0, 3), (a, b), (0, 5)]
 		res = scipy.optimize.differential_evolution(de_wrap, de_bounds, strategy='best1bin', popsize=40)
 		resx = dict(zip(["u0", "t0", "tE"], [res.x[0], res.x[1], np.power(10, res.x[2])]))
