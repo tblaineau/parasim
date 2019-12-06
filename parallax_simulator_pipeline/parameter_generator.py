@@ -111,7 +111,7 @@ def metropolis_hastings(func, g, nb_samples, x0, *args):
 	return samples[100:]
 
 
-class Microlensing_generator:
+class MicrolensingGenerator:
 	"""
 	Class to generate microlensing paramters
 
