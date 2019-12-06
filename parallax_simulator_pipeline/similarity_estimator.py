@@ -15,16 +15,16 @@ from scipy.signal import find_peaks
 
 
 @nb.njit
-def simple_difference(t, u0, t0, tE, pu0, pt0, ptE, pdu, ptheta):
+def simple_difference(t, u0, t0, tE, pu0, pt0, ptE, pdu, ptheta, blend):
 	""" simple difference between parallax and simple."""
-	return microlens_parallax(t, 19, 0, pu0, pt0, ptE, pdu, ptheta) - microlens_simple(t, 19., 0., u0, t0, tE, 0., 0.)
+	return microlens_parallax(t, 19, blend, pu0, pt0, ptE, pdu, ptheta) - microlens_simple(t, 19., 0., u0, t0, tE, 0., 0.)
 
 
 @nb.njit
-def squared_difference(t, u0, t0, tE, pu0, pt0, ptE, pdu, ptheta):
+def squared_difference(t, u0, t0, tE, pu0, pt0, ptE, pdu, ptheta, blend):
 	"""njitted squared difference between parallax and simple. (so not an aboslute difference)"""
 	t = np.array([t])
-	return (simple_difference(t, u0, t0, tE, pu0, pt0, ptE, pdu, ptheta)) ** 2
+	return (simple_difference(t, u0, t0, tE, pu0, pt0, ptE, pdu, ptheta, blend)) ** 2
 
 
 # ESTIMATORS #
@@ -40,14 +40,14 @@ def integral_curvefit(params, epsabs=1e-8):
 
 	def minuit_wrap(u0, t0, tE):
 		tE = np.power(10, tE)
-		quadargs = (u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'])
+		quadargs = (u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'], params['blend'])
 		val = scipy.integrate.quad(squared_difference, a, b, args=quadargs, epsabs=epsabs)[0]
 		return val
 
 	def de_wrap(x):
 		u0, t0, tE = x
 		tE = np.power(10, tE)
-		quadargs = (u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'])
+		quadargs = (u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'], params['blend'])
 		val = scipy.integrate.quad(squared_difference, a, b, args=quadargs, epsabs=epsabs)[0]
 		return val
 
@@ -142,9 +142,9 @@ def compute_distances(output_name, distance, parameter_list, nb_samples=None, st
 	parameter_list : list
 		List of lens event parameters
 	nb_samples : int
-	 	Compute the distance for the **nb_samples** first parameters sets. If nb_samples, start and end are None, compute distance for all parameters.
+		Compute the distance for the **nb_samples** first parameters sets. If nb_samples, start and end are None, compute distance for all parameters.
 	start : int
-	 	If nb_samples is None, the index of parameter_list from which to computing distance
+		If nb_samples is None, the index of parameter_list from which to computing distance
 	end : int
 		If nb_samples is None, the index of parameter_list where to stop computing distance
 	**distance_args : distance arguments
@@ -160,18 +160,13 @@ def compute_distances(output_name, distance, parameter_list, nb_samples=None, st
 		parameter_list = parameter_list[:nb_samples]
 	df = pd.DataFrame.from_records(parameter_list)
 
-	st1 = time.time()
-
 	ds = []
 	i = 0
 	for params in parameter_list:
 		i += 1
-		params = {key: params[key] for key in ['u0', 't0', 'tE', 'delta_u', 'theta']}
+		params = {key: params[key] for key in ['u0', 't0', 'tE', 'delta_u', 'theta', 'blend_red_M']}
 		params['mag'] = 19.
-		params['blend'] = 0.
-		st2 = time.time()
 		ds.append(distance(params, **distance_args))
-		# logging.debug(f'{time.time()-st2} s')
 		if i % 100 == 0:
 			logging.debug(i)
 
