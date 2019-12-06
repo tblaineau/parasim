@@ -246,7 +246,7 @@ def microlens_simple(t, mag, blend, u0, t0, tE, delta_u, theta):
 
 
 def dict_of_lists_to_numpy_structured_array(pms):
-	""" Function to convert a dictionnary of list of float to a structured array """
+	""" Function to convert a dictionary of list of float to a structured array """
 	dtypes = dict(names=list(pms.keys()), formats=['f8']*len(pms.keys()))
 	t = np.zeros((1, len(pms['u0'])), dtype=dtypes)
 	for key in pms.keys():
