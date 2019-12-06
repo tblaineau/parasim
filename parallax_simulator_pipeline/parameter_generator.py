@@ -243,3 +243,14 @@ def microlens_simple(t, mag, blend, u0, t0, tE, delta_u, theta):
 	u = np.sqrt(u0*u0 + ((t-t0)**2)/tE/tE)
 	amp = (u**2+2)/(u*np.sqrt(u**2+4))
 	return - 2.5*np.log10(blend*np.power(10, mag/-2.5) + (1-blend)*np.power(10, mag/-2.5) * amp)
+
+
+def dict_of_lists_to_numpy_structured_array(pms):
+	""" Function to convert a dictionnary of list of float to a structured array """
+	dtypes = dict(names=list(pms.keys()), formats=['f8']*len(pms.keys()))
+	t = np.zeros((1, len(pms['u0'])), dtype=dtypes)
+	for key in pms.keys():
+		t[key] = pms[key]
+	pms = t
+	del t
+	return pms
