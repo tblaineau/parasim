@@ -67,7 +67,7 @@ def integral_curvefit(params, epsabs=1e-8):
 	m.migrad()
 	errs = dict(m.errors)
 
-	if errs["t0"] >= np.power(10,params["tE"]):
+	if errs["t0"] >= np.power(10, abs(params["tE"])):
 		de_bounds = [(0, 3), (a, b), (0, 5)]
 		res = scipy.optimize.differential_evolution(de_wrap, de_bounds, strategy='best1bin', popsize=40)
 		resx = dict(zip(["u0", "t0", "tE"], [res.x[0], res.x[1], np.power(10, res.x[2])]))
@@ -112,7 +112,7 @@ def minmax_distance(params, time_sampling=0.5, pop_size=40):
 
 	def fitter_minmax(g):
 		u0, t0, tE = g
-		return (simple_difference(t, u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta']) ** 2).max()
+		return (simple_difference(t, u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'], params['blend']) ** 2).max()
 
 	bounds = [(0, 2), (params['t0'] - 400, params['t0'] + 400), (params['tE'] * (1 - np.sign(params['tE']) * 0.5), params['tE'] * (1 + np.sign(params['tE']) * 0.5))]
 	init_pop = np.array([np.random.uniform(bounds[0][0], bounds[0][1], pop_size),
