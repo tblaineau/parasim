@@ -152,7 +152,7 @@ class MicrolensingGenerator:
 				except FileNotFoundError:
 					logging.error(f"xvt file not found : {self.xvt_file}")
 			elif isinstance(self.xvt_file, int):
-				logging.info("Generating 10.000.000 x-vt pairs... ")
+				logging.info(f"Generating {self.xvt_file} x-vt pairs... ")
 				self.xvts = np.array(metropolis_hastings(pdf_xvt, randomizer_gauss, self.xvt_file, np.array([0.5, 100]), (10.)))
 			else:
 				logging.error(f"xvts can't be loaded or generated, check variable : {self.xvt_file}")
