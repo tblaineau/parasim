@@ -26,7 +26,7 @@ if __name__ == '__main__':
 	current_job = args.current_job
 	function_name = args.function_name
 	try:
-		eval(function_name)
+		distance_function = eval(function_name)
 	except NameError:
 		logging.error(f"Not in scope : {function_name}")
 		exit(1)
@@ -52,4 +52,4 @@ if __name__ == '__main__':
 
 	assert os.path.isfile(parameter_file), 'Parameter file does not exist : ' + parameter_file
 
-	compute_distances(output_name, distance=eval(function_name), parameter_list=np.load(parameter_file, allow_pickle=True), start=start, end=end)
+	compute_distances(output_name, distance=distance_function, parameter_list=np.load(parameter_file, allow_pickle=True), start=start, end=end)
