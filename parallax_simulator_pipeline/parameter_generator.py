@@ -3,6 +3,7 @@ import astropy.units as units
 import astropy.constants as constants
 import numba as nb
 import logging
+import pandas as pd
 
 COLOR_FILTERS = {
 	'red_E':{'mag':'red_E', 'err': 'rederr_E'},
@@ -253,3 +254,15 @@ def dict_of_lists_to_numpy_structured_array(pms):
 	pms = t
 	del t
 	return pms
+
+
+"""def generate_parameters_file(global_seed=1995281, masses=[0.1, 1, 10, 30, 100, 300]):
+	np.random.seed(global_seed)
+	mlg = MicrolensingGenerator(1000000, seed=85140, tmin=48928, tmax=48928+365.25, max_blend=0.7)
+	pms = []
+	for mass in masses:
+		pms.append(dict_of_lists_to_numpy_structured_array(mlg.generate_parameters(mass=mass, nb_parameters=100000)))
+	pms = np.concatenate(pms)
+	pms = pd.DataFrame(pms).to_records()
+	np.save('blended_parameters', pms)
+"""
