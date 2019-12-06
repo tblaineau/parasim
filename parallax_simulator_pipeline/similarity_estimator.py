@@ -7,7 +7,7 @@ import numba as nb
 import time
 import logging
 
-from merger.old.parameter_generator import microlens_parallax, microlens_simple, generate_parameter_file
+from parallax_simulator_pipeline.parameter_generator import microlens_parallax, microlens_simple
 from scipy.signal import find_peaks
 
 
@@ -80,7 +80,7 @@ def integral_curvefit(params, epsabs=1e-8):
 
 def count_peaks(params, min_prominence=0., base_mag=19.):
 	"""
-	Compute the number of peaks in the parallax event curve
+	Compute the number of peaks in the parallax event curve between t0-2*tE and t0+2*tE
 
 	Parameters
 	----------
@@ -96,7 +96,7 @@ def count_peaks(params, min_prominence=0., base_mag=19.):
 	int
 		Number of peaks detected
 	"""
-	t = np.arange(params['t0']-2*np.abs(params['tE']), params['t0']+2*np.abs(params['tE']), 1)
+	t = np.arange(params['t0']-2*np.abs(params['tE'])-1000, params['t0']+2*np.abs(params['tE'])+1000, 1)
 	cpara = microlens_parallax(t, **params)
 	peaks, infos = find_peaks(base_mag-cpara, prominence=min_prominence)
 	if len(peaks):
