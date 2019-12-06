@@ -2,7 +2,7 @@ import argparse
 import os
 import logging
 import numpy as np
-from parallax_simulator_pipeline.similarity_estimator import count_peaks, compute_distances
+from parallax_simulator_pipeline.similarity_estimator import count_peaks, integral_curvefit, minmax_distance, compute_distances
 
 logging.basicConfig(level=logging.INFO)
 
@@ -16,6 +16,7 @@ if __name__ == '__main__':
 	parser.add_argument('--nb_files', type=int, required=True, help="Number of parameters file.")
 	parser.add_argument('--nb_jobs', type=int, required=False, default=100, help="Number of jobs.")
 	parser.add_argument('--current_job', type=int, required=True, help="current job number")
+	parser.add_argument('--function_name', type=str, required=True, help="function to compute distance")
 
 	args = parser.parse_args()
 
@@ -23,6 +24,12 @@ if __name__ == '__main__':
 	nb_files = args.nb_files
 	nb_jobs = args.nb_jobs
 	current_job = args.current_job
+	function_name = args.function_name
+	try:
+		eval(function_name)
+	except NameError:
+		logging.error(f"Not in scope : {function_name}")
+		exit(1)
 
 	nb_samples_job = int(nb_line_pmsfile * nb_files / nb_jobs)
 	factor = int(nb_line_pmsfile / nb_samples_job)
@@ -45,5 +52,4 @@ if __name__ == '__main__':
 
 	assert os.path.isfile(parameter_file), 'Parameter file does not exist : ' + parameter_file
 
-	compute_distances(output_name, distance=count_peaks, parameter_list=np.load(parameter_file, allow_pickle=True),
-					  start=start, end=end)
+	compute_distances(output_name, distance=eval(function_name), parameter_list=np.load(parameter_file, allow_pickle=True), start=start, end=end)
