@@ -122,12 +122,14 @@ class Microlensing_generator:
 		If int, number of xvt pairs to pool
 	seed : int
 		Seed used for numpy.seed
-	tmin : int
-		test
-	tmax : int
-		Defines the limits of t_0
+	tmin : float
+		lower limit of t_0
+	tmax : float
+		upper limits of t_0
+	max_blend : float
+		maximum authorized blend, if max_blend=0, no blending
 	"""
-	def __init__(self, xvt_file=None, seed=None, tmin=48928., tmax=52697., u_max=2., mass=30.,  max_blend=0.7, enable_blending=False):
+	def __init__(self, xvt_file=None, seed=None, tmin=48928., tmax=52697., u_max=2., mass=30.,  max_blend=0.):
 		self.seed = seed
 		self.xvt_file = xvt_file
 
@@ -135,7 +137,7 @@ class Microlensing_generator:
 		self.tmax = tmax
 		self.u_max = u_max
 		self.max_blend = max_blend
-		self.blending = enable_blending
+		self.blending = bool(max_blend)
 		self.blend_pdf = None
 		self.generate_mass = False
 		self.mass = mass
