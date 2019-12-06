@@ -129,7 +129,7 @@ class MicrolensingGenerator:
 	max_blend : float
 		maximum authorized blend, if max_blend=0, no blending
 	"""
-	def __init__(self, xvt_file=None, seed=None, tmin=48928., tmax=52697., u_max=2., mass=30.,  max_blend=0.):
+	def __init__(self, xvt_file=None, seed=None, tmin=48928., tmax=52697., u_max=2.,  max_blend=0.):
 		self.seed = seed
 		self.xvt_file = xvt_file
 
@@ -140,7 +140,6 @@ class MicrolensingGenerator:
 		self.blending = bool(max_blend)
 		self.blend_pdf = None
 		self.generate_mass = False
-		self.mass = mass
 
 		if self.seed:
 			np.random.seed(self.seed)
@@ -157,7 +156,7 @@ class MicrolensingGenerator:
 			else:
 				logging.error(f"xvts can't be loaded or generated, check variable : {self.xvt_file}")
 
-	def generate_parameters(self, seed=None, nb_parameters=1):
+	def generate_parameters(self, mass=30., seed=None, nb_parameters=1):
 		"""
 		Generate a set of microlensing parameters, including parallax and blending using S-model and fixed mass
 
@@ -176,7 +175,7 @@ class MicrolensingGenerator:
 		if self.generate_mass:
 			mass = np.random.uniform(0, 200, size=nb_parameters)
 		else:
-			mass = np.array([self.mass]*nb_parameters)
+			mass = np.array([mass]*nb_parameters)
 		u0 = np.random.uniform(0, self.u_max, size=nb_parameters)
 		x, vt = self.xvts[np.random.randint(0, self.xvts.shape[0], size=nb_parameters)].T
 		vt *= np.random.choice([-1., 1.], size=nb_parameters, replace=True)
