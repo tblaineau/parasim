@@ -10,7 +10,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--name', '-n', type=str, required=True, help="output file name")
 	parser.add_argument('--parameter_file', type=str, required=True,
-						help="template name of parameter file, ex : parameters1M_")
+						help="template name of parameter file, ex : parameters1M")
 	parser.add_argument('--nb_line_pmsfile', type=int, required=True,
 						help="Number of light curve per parameters file.")
 	parser.add_argument('--nb_files', type=int, required=True, help="Number of parameters file.")
