@@ -175,6 +175,10 @@ class MicrolensingGenerator:
 		----------
 		seed : str
 			Seed used for parameter generation (EROS id)
+		mass : float
+			mass for which generate paramters (\implies \delta_u, t_E)
+		nb_parameters : int
+			number of parameters set to generate
 		Returns
 		-------
 		dict
