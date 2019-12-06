@@ -157,7 +157,7 @@ class MicrolensingGenerator:
 			else:
 				logging.error(f"xvts can't be loaded or generated, check variable : {self.xvt_file}")
 
-	def generate_parameters(self, seed):
+	def generate_parameters(self, seed=None, nb_parameters=1):
 		"""
 		Generate a set of microlensing parameters, including parallax and blending using S-model and fixed mass
 
@@ -168,22 +168,22 @@ class MicrolensingGenerator:
 		Returns
 		-------
 		dict
-			Dictionnary containing the parameters set
+			Dictionnary of lists containing the parameters set
 		"""
 		if seed:
 			seed = int(seed.replace('lm0', '').replace('k', '0').replace('l', '1').replace('m', '2').replace('n', '3'))
 			np.random.seed(seed)
 		if self.generate_mass:
-			mass = np.random.uniform(0, 200)
+			mass = np.random.uniform(0, 200, size=nb_parameters)
 		else:
-			mass = self.mass
-		u0 = np.random.uniform(0, self.u_max)
-		x, vt = self.xvts[np.random.randint(0, self.xvts.shape[0])]
-		vt *= np.random.choice([-1., 1.])
+			mass = np.array([self.mass]*nb_parameters)
+		u0 = np.random.uniform(0, self.u_max, size=nb_parameters)
+		x, vt = self.xvts[np.random.randint(0, self.xvts.shape[0], size=nb_parameters)].T
+		vt *= np.random.choice([-1., 1.], size=nb_parameters, replace=True)
 		delta_u = delta_u_from_x(x, mass=mass)
 		tE = tE_from_xvt(x, vt, mass=mass)
-		t0 = np.random.uniform(self.tmin - tE / 2., self.tmax + tE / 2.)
-		theta = np.random.uniform(0, 2 * np.pi)
+		t0 = np.random.uniform(self.tmin - tE / 2., self.tmax + tE / 2., size=nb_parameters)
+		theta = np.random.uniform(0, 2 * np.pi, size=nb_parameters)
 		params = {
 			'u0': u0,
 			't0': t0,
@@ -194,11 +194,12 @@ class MicrolensingGenerator:
 			'x': x,
 			'vt': vt,
 		}
+
 		for key in COLOR_FILTERS.keys():
 			if self.blending:
-				params['blend_'+key] = np.random.uniform(0, self.max_blend)
+				params['blend_'+key] = np.random.uniform(0, self.max_blend, size=nb_parameters)
 			else:
-				params['blend_'+key] = 0
+				params['blend_'+key] = [0] * nb_parameters
 		return params
 
 
