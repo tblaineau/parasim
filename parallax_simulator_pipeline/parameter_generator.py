@@ -12,8 +12,8 @@ COLOR_FILTERS = {
 	'blue_M':{'mag':'blue_M', 'err': 'blueerr_M'}
 }
 
-a=5000
-rho_0=0.0079
+a = 5000
+rho_0 = 0.0079
 d_sol = 8500
 l_lmc, b_lmc = 280.4652/180.*np.pi, -32.8884/180.*np.pi
 r_lmc = 55000
@@ -29,34 +29,42 @@ A = d_sol ** 2 + a ** 2
 B = d_sol * cosb_lmc * cosl_lmc
 r_0 = np.sqrt(4*constants.G/(constants.c**2)*r_lmc*units.pc).decompose([units.Msun, units.pc]).value
 
+
 @nb.njit
 def r(mass):
 	R_0 = r_0*np.sqrt(mass)
 	return r_earth/R_0
 
+
 @nb.njit
 def R_E(x, mass):
 	return r_0*np.sqrt(mass*x*(1-x))
+
 
 @nb.njit
 def rho_halo(x):
 	return rho_0*A/((x*r_lmc)**2-2*x*r_lmc*B+A)
 
+
 @nb.njit
 def f_vt(v_T, v0=220):
 	return (2*v_T/(v0**2))*np.exp(-v_T**2/(v0**2))
+
 
 @nb.njit
 def p_xvt(x, v_T, mass):
 	return rho_halo(x)/mass*r_lmc*(2*r_0*np.sqrt(mass*x*(1-x))*t_obs*v_T)
 
+
 @nb.njit
 def delta_u_from_x(x, mass):
 	return r(mass)*np.sqrt((1-x)/x)
 
+
 @nb.njit
 def tE_from_xvt(x, vt, mass):
 	return r_0 * np.sqrt(mass*x*(1-x)) / (vt*kms_to_pcd)
+
 
 @nb.njit
 def pdf_xvt(x, mass):
@@ -64,9 +72,11 @@ def pdf_xvt(x, mass):
 		return 0
 	return p_xvt(x[0], x[1], mass)*f_vt(x[1])
 
+
 @nb.njit
 def randomizer_gauss(x):
 	return np.array([np.random.normal(loc=x[0], scale=0.1), np.random.normal(loc=x[1], scale=300)])
+
 
 @nb.njit
 def metropolis_hastings(func, g, nb_samples, x0, *args):
