@@ -114,7 +114,7 @@ def minmax_distance(params, time_sampling=0.5, pop_size=40):
 		u0, t0, tE = g
 		return (simple_difference(t, u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'], params['blend']) ** 2).max()
 
-	bounds = [(0, 2), (params['t0'] - 400, params['t0'] + 400), (params['tE'] * (1 - np.sign(params['tE']) * 0.5), params['tE'] * (1 + np.sign(params['tE']) * 0.5))]
+	bounds = [(0, 3), (params['t0'] - 400, params['t0'] + 400), (min(10., abs(params['tE']*0.1)), abs(params['tE'])*1.5)]
 	init_pop = np.array([np.random.uniform(bounds[0][0], bounds[0][1], pop_size),
 				np.random.uniform(bounds[1][0], bounds[1][1], pop_size),
 				np.random.uniform(bounds[2][0], bounds[2][1], pop_size),
