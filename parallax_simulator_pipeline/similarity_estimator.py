@@ -165,7 +165,6 @@ def compute_distances(output_name, distance, parameter_list, nb_samples=None, st
 	ds = []
 	i = 0
 	for params in parameter_list:
-		print(params)
 		i += 1
 		n_params = {key: params[key] for key in ['u0', 't0', 'tE', 'delta_u', 'theta']}
 		n_params['blend'] = params['blend_red_M']
