@@ -140,7 +140,7 @@ class MicrolensingGenerator:
 	max_blend : float
 		maximum authorized blend, if max_blend=0, no blending
 	"""
-	def __init__(self, xvt_file=None, seed=None, tmin=48928., tmax=52697., u_max=2.,  max_blend=0.):
+	def __init__(self, xvt_file=None, seed=None, tmin=48928., tmax=52697., u_max=2.,  max_blend=0., min_blend=0.):
 		self.seed = seed
 		self.xvt_file = xvt_file
 
@@ -148,6 +148,7 @@ class MicrolensingGenerator:
 		self.tmax = tmax
 		self.u_max = u_max
 		self.max_blend = max_blend
+		self.min_blend = min_blend
 		self.blending = bool(max_blend)
 		self.blend_pdf = None
 		self.generate_mass = False
@@ -211,7 +212,7 @@ class MicrolensingGenerator:
 
 		for key in COLOR_FILTERS.keys():
 			if self.blending:
-				params['blend_'+key] = np.random.uniform(0, self.max_blend, size=nb_parameters)
+				params['blend_'+key] = np.random.uniform(self.min_blend, self.max_blend, size=nb_parameters)
 			else:
 				params['blend_'+key] = [0] * nb_parameters
 		return params
