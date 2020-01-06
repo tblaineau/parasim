@@ -186,7 +186,7 @@ def max_parallax(params):
 	""" Find maximum value of parallax light curve"""
 	def minus_parallax(t):
 		t = np.array([t])
-		return microlens_parallax(t, 19, 0, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'])
+		return microlens_parallax(t, 19, params['blend'], params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'])
 
 	m = Minuit(minus_parallax,
 			   t = params["t0"],
