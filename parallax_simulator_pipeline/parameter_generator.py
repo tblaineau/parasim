@@ -250,14 +250,14 @@ def microlens_parallax(t, mag, blend, u0, t0, tE, delta_u, theta):
 	t4 = 2*tau*delta_u * (np.sin(phi)*np.cos(theta) - np.cos(phi)*np.sin(theta)*sin_beta)
 	u = np.sqrt(t1+t2+t3+t4)
 	parallax = (u**2+2)/(u*np.sqrt(u**2+4))
-	return - 2.5*np.log10(blend*np.power(10, mag/-2.5) + (1-blend)*np.power(10, mag/-2.5) * parallax)
+	return - 2.5*np.log10(blend + (1-blend)* parallax) + mag
 
 
 @nb.njit
 def microlens_simple(t, mag, blend, u0, t0, tE, delta_u=0, theta=0):
 	u = np.sqrt(u0*u0 + ((t-t0)**2)/tE/tE)
 	amp = (u**2+2)/(u*np.sqrt(u**2+4))
-	return - 2.5*np.log10(blend*np.power(10, mag/-2.5) + (1-blend)*np.power(10, mag/-2.5) * amp)
+	return - 2.5*np.log10(blend + (1-blend)* amp) + mag
 
 
 def dict_of_lists_to_numpy_structured_array(pms):
