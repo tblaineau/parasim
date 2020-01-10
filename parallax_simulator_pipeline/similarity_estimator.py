@@ -98,11 +98,11 @@ def count_peaks(params, min_prominence=0., base_mag=19.):
 	"""
 	t = np.arange(params['t0']-2*np.abs(params['tE'])-1000, params['t0']+2*np.abs(params['tE'])+1000, 1)
 	cpara = microlens_parallax(t, **params)
-	peaks, infos = find_peaks(base_mag-cpara, prominence=min_prominence)
+	peaks, infos = find_peaks(base_mag-cpara, prominence=min_prominence, height=0)
 	if len(peaks):
-		return [len(peaks), infos["prominences"]]
+		return [infos["prominences"], infos["peak_heights"]]
 	else:
-		return 0
+		return [[], []]
 
 
 def minmax_distance(params, time_sampling=0.5, pop_size=40):
@@ -175,8 +175,18 @@ def compute_distances(output_name, distance, parameter_list, nb_samples=None, st
 
 	logging.info(f'{len(parameter_list)} distances computed in {time.time()-st1:.2f} seconds.')
 
-	df = df.assign(distance=ds)
-	df.to_pickle(output_name)
+	ds = np.array(ds)
+	to_assign = {}
+	if len(ds.shape)==1:
+		to_assign['distance'] = ds
+	else:
+		to_assign['distance'] = ds[0]
+		for idx in range(len(ds.shape[1])):
+			to_assign['p'+str(idx)] = ds[idx]
+
+	df = df.assign(to_assign)
+
+	df.to_parquet(output_name)
 
 
 #
