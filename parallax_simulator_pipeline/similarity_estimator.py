@@ -100,7 +100,7 @@ def count_peaks(params, min_prominence=0., base_mag=19.):
 	cpara = microlens_parallax(t, **params)
 	peaks, infos = find_peaks(base_mag-cpara, prominence=min_prominence, height=0)
 	if len(peaks):
-		return [infos["prominences"], infos["peak_heights"]]
+		return [len(peaks), infos["prominences"], infos["peak_heights"]]
 	else:
 		return [[], []]
 
