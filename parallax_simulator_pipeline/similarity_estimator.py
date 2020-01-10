@@ -167,7 +167,7 @@ def compute_distances(output_name, distance, parameter_list, nb_samples=None, st
 	for params in parameter_list:
 		i += 1
 		n_params = {key: params[key] for key in ['u0', 't0', 'tE', 'delta_u', 'theta']}
-		n_params['blend'] = params['blend_red_M']
+		n_params['blend'] = 0.#= params['blend_red_M'] #TODO: Automatize this
 		n_params['mag'] = 19.
 		ds.append(distance(n_params, **distance_args))
 		if i % 100 == 0:
