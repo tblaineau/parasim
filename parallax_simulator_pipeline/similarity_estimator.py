@@ -11,6 +11,7 @@ from parallax_simulator_pipeline.parameter_generator import microlens_parallax, 
 from scipy.signal import find_peaks
 
 
+
 # UTILITIES #
 
 
@@ -175,21 +176,17 @@ def compute_distances(output_name, distance, parameter_list, nb_samples=None, st
 
 	logging.info(f'{len(parameter_list)} distances computed in {time.time()-st1:.2f} seconds.')
 
-	ds = np.array(ds)
+	ds = np.array(ds).T
 	to_assign = {}
 	if len(ds.shape)==1:
 		to_assign['distance'] = ds
 	else:
 		to_assign['distance'] = ds[0]
-		for idx in range(len(ds.shape[1])):
+		for idx in range(1,ds.shape[0]):
 			to_assign['p'+str(idx)] = ds[idx]
-
-	df = df.assign(to_assign)
-
+	
+	df = df.assign(**to_assign).drop("blend", axis=1)
 	df.to_parquet(output_name)
-
-
-#
 
 
 def max_parallax(params):
