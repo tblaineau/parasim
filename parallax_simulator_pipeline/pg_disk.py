@@ -267,15 +267,13 @@ def p_vt_disk(vr, vtheta, vz, sig_r, sig_theta, sig_z):
 
 
 @nb.njit
-def pdf_xvs_disk(x, vr, vtheta, vz, sig_r, sig_theta, sig_z, sigma, H, R):
+def pdf_xvs_disk(vec, params):
 	"""Disk geometry probabilty density function
 
 	Parameters
 	----------
-	x : float
-		distance ratio to the LMC
-	vr, vtheta, vz : float
-		deflector speed vector coordinates (in heliospherical galactic coordinates)
+	vec : np.array([float, float, float, float)]
+		distance ratio to the LMC and deflector speed vector coordinates (in heliospherical galactic coordinates)
 	sig_r, sig_theta, sig_z : float
 		speed dispersion of deflector particular speed (in heliospherical galactic coordinates)
 	sigma : float
@@ -291,6 +289,8 @@ def pdf_xvs_disk(x, vr, vtheta, vz, sig_r, sig_theta, sig_z, sigma, H, R):
 		pdf of (x, vr, vtheta, vz) for a disk, toward LMC
 
 	"""
+	x, vr, vtheta, vz = vec
+	sig_r, sig_theta, sig_z, sigma, H, R = params
 	if x<0 or x>1:
 		return 0		# x should be in [0, 1]
 	z_sol = 26
@@ -308,7 +308,7 @@ def randomizer_gauss(x):
 @nb.njit
 def randomize_gauss_total_hardcoded(x):
 	""" x and vr, vtheta, vz randomizer"""
-	scales = [0.08, 15., 15., 15.]
+	scales = [0.1, 17., 16., 15.]
 	return np.array([np.random.normal(loc=x[0], scale=scales[0]),
 					 np.random.normal(loc=x[1], scale=scales[1]),
 					 np.random.normal(loc=x[2], scale=scales[2]),
@@ -330,7 +330,7 @@ def metropolis_hastings(func, g, nb_samples, x0, *args):
 		Number of points to return. Need to be large so that the output distribution is smooth
 	x0 : array-like
 		Initial point
-	kwargs :
+	args :
 		arguments to pass to *func*
 
 
@@ -339,7 +339,7 @@ def metropolis_hastings(func, g, nb_samples, x0, *args):
 	np.array
 		Array containing all the points
 	"""
-	samples = []
+	samples = np.empty((nb_samples+100, 4))
 	current_x = x0
 	accepted=0
 	rds = np.random.uniform(0., 1., nb_samples+100)			# We generate the rs beforehand, for SPEEEED
@@ -353,7 +353,7 @@ def metropolis_hastings(func, g, nb_samples, x0, *args):
 		if rds[idx] < threshold:
 			current_x = proposed_x
 			accepted+=1
-		samples.append(current_x)
+		samples[idx] = current_x
 	print(accepted, accepted/nb_samples)
 	# We crop the hundred first to avoid outliers from x0
 	return samples[100:]
