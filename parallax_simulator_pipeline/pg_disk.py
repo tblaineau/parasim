@@ -351,8 +351,9 @@ def metropolis_hastings(func, g, nb_samples, x0, *args):
 	samples = np.empty((nb_samples+100, 4))
 	current_x = x0
 	accepted=0
-	rds = np.random.uniform(0., 1., nb_samples+100)			# We generate the rs beforehand, for SPEEEED
-	for idx in range(nb_samples+100):
+	burnin = 1000
+	rds = np.random.uniform(0., 1., nb_samples+burnin)			# We generate the rs beforehand, for SPEEEED
+	for idx in range(nb_samples+burnin):
 		proposed_x = g(current_x)
 		tmp = func(current_x, *args)
 		if tmp!=0:
@@ -365,7 +366,7 @@ def metropolis_hastings(func, g, nb_samples, x0, *args):
 		samples[idx] = current_x
 	print(accepted, accepted/nb_samples)
 	# We crop the hundred first to avoid outliers from x0
-	return samples[100:]
+	return samples[burnin:]
 
 
 class MicrolensingGenerator:
