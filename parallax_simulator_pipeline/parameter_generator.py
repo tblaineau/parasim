@@ -105,7 +105,7 @@ def metropolis_hastings(func, g, nb_samples, x0, *args):
 	samples = []
 	current_x = x0
 	accepted=0
-	rds = np.random.uniform(0., 1., nb_samples+100)
+	rds = np.random.uniform(0., 1., nb_samples+1000)
 	for idx in range(nb_samples+1000):
 		proposed_x = g(current_x)
 		tmp = func(current_x, *args)
