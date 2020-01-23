@@ -403,16 +403,12 @@ class MicrolensingGenerator:
 			np.random.seed(self.seed)
 
 		if self.xvt_file:
-			if isinstance(self.xvt_file, str):
-				try:
-					self.xvts = np.load(self.xvt_file)
-				except FileNotFoundError:
-					logging.error(f"xvt file not found : {self.xvt_file}")
-			elif isinstance(self.xvt_file, int):
+			if isinstance(self.xvt_file, int):
 				logging.info(f"Generating {self.xvt_file} x-vt pairs... ")
-				self.xvts = np.array(metropolis_hastings(pdf_xvt, randomizer_gauss, self.xvt_file, np.array([0.5, 100]), (10.)))
+				self.xvts = metropolis_hastings(pdf_xvs_disk, randomize_gauss_total_hardcoded, 1000000, np.array([0.9, 10., 10., 10.]), (sigma_r, sigma_theta, sigma_z, sigma, H, R))
+				self.thetas = compute_thetas(self.xvts)
 			else:
-				logging.error(f"xvts can't be loaded or generated, check variable : {self.xvt_file}")
+				logging.error(f"Currently, xvts must be the number of set to generate : {self.xvt_file}")
 
 	def generate_parameters(self, mass=30., seed=None, nb_parameters=1):
 		"""
@@ -438,13 +434,14 @@ class MicrolensingGenerator:
 			mass = np.random.uniform(0, 200, size=nb_parameters)
 		else:
 			mass = np.array([mass]*nb_parameters)
-		u0 = np.random.uniform(0, self.u_max, size=nb_parameters)
-		x, vt = self.xvts[np.random.randint(0, self.xvts.shape[0], size=nb_parameters)].T
+		u0 = np.random.uniform(-self.u_max, self.u_max, size=nb_parameters)
+		indices = np.random.randint(0, self.xvts.shape[0], size=nb_parameters)
+		x, vt = self.xvts[indices].T
+		theta = self.thetas[indices]
 		vt *= np.random.choice([-1., 1.], size=nb_parameters, replace=True)
 		delta_u = delta_u_from_x(x, mass=mass)
 		tE = tE_from_xvt(x, vt, mass=mass)
 		t0 = np.random.uniform(self.tmin - tE / 2., self.tmax + tE / 2., size=nb_parameters)
-		theta = np.random.uniform(0, 2 * np.pi, size=nb_parameters)
 		params = {
 			'u0': u0,
 			't0': t0,
@@ -519,7 +516,7 @@ def dict_of_lists_to_numpy_structured_array(pms):
 
 def generate_parameters_file(global_seed=1995281, masses=[0.1, 1, 10, 30, 100, 300], nb_parameters=1000):
 	np.random.seed(global_seed)
-	mlg = MicrolensingGenerator(1000000, seed=85140, tmin=48928, tmax=48928+365.25, max_blend=0.7)
+	mlg = MicrolensingGenerator(10000000, seed=85140, tmin=48928, tmax=48928+365.25, max_blend=0.7)
 	pms = []
 	for mass in masses:
 		pms.append(dict_of_lists_to_numpy_structured_array(mlg.generate_parameters(mass=mass, nb_parameters=nb_parameters)))
