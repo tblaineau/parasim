@@ -21,6 +21,15 @@ r_lmc = 55000
 r_earth = (150*1e6*units.km).to(units.pc).value
 t_obs = ((52697 - 48928) << units.d).to(units.s).value
 
+# Thick Disk parameters
+sigma_r = 56.1
+sigma_theta = 46.1
+sigma_z = 35.1	# speed dispersion of deflector particular speed (in heliospherical galactic coordinates)
+sigma = 35		# column density of the disk
+H = 1000.		# height scale
+R = 3500.		# radial length scale
+
+
 pc_to_km = (units.pc.to(units.km))
 kms_to_pcd = (units.km/units.s).to(units.pc/units.d)
 
