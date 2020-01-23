@@ -24,7 +24,7 @@ x = np.linspace(0, 1, 10)
 plt.show()"""
 
 
-"""mlg = pgd.MicrolensingGenerator(xvt_file=10000000, seed=1234567, tmin=48928., tmax=52697., u_max=2.,  max_blend=0., min_blend=0.)
+"""mlg = pgd.MicrolensingGenerator(xvt_file=10000000, seed=1234567, tmin=48928., tmax=48928+365.25, u_max=2.,  max_blend=0., min_blend=0.)
 pms = mlg.generate_parameters(mass=10., seed=1234567, nb_parameters=100000)
 print(pms)
 
@@ -47,7 +47,7 @@ plt.xlabel(r"x")
 plt.show()
 
 plt.hist(pms['vt'], bins=100, range=(0, 250))
-plt.xlabel(r"$v_R$")
+plt.xlabel(r"$v_T$")
 plt.show()
 
 plt.hist(pms['u0'], bins=100)
@@ -62,3 +62,5 @@ ax.hist(pms["theta"], bins=100)
 ax.grid(True)
 x = np.linspace(0, 1, 10)
 plt.show()
+
+pgd.generate_parameters_file(nb_parameters=100000)
