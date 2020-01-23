@@ -79,8 +79,8 @@ def compute_i():
 	return i
 
 
-def compute_thetas(s_thick):
-	v = project_from_gala(*s_thick[:, 1:].T, s_thick[:, 0])
+def compute_thetas(vr, vtheta, vz, x):
+	v = project_from_gala(vr, vtheta, vz, x)
 	v = np.array([np.zeros(len(v[0])), *v])
 	i = compute_i()
 	thetas = np.arctan2(i[1]*v[2]-i[2]*v[1], i[1]*v[1]+i[2]*v[2])
@@ -406,8 +406,9 @@ class MicrolensingGenerator:
 		if self.xvt_file:
 			if isinstance(self.xvt_file, int):
 				logging.info(f"Generating {self.xvt_file} x-vt pairs... ")
-				self.xvts = metropolis_hastings(pdf_xvs_disk, randomize_gauss_total_hardcoded, 1000000, np.array([0.9, 10., 10., 10.]), (sigma_r, sigma_theta, sigma_z, sigma, H, R))
-				self.thetas = compute_thetas(self.xvts)
+				self.xs, vr, vtheta, vz = metropolis_hastings(pdf_xvs_disk, randomize_gauss_total_hardcoded, 1000000, np.array([0.9, 10., 10., 10.]), (sigma_r, sigma_theta, sigma_z, sigma, H, R)).T
+				self.vts = vt_from_vs(vr, vtheta, vz, self.xs)
+				self.thetas = compute_thetas(vr, vtheta, vz, self.xs)
 			else:
 				logging.error(f"Currently, xvts must be the number of set to generate : {self.xvt_file}")
 
@@ -428,18 +429,20 @@ class MicrolensingGenerator:
 		dict
 			Dictionnary of lists containing the parameters set
 		"""
-		if seed:
+		if isinstance(seed, str):
 			seed = int(seed.replace('lm0', '').replace('k', '0').replace('l', '1').replace('m', '2').replace('n', '3'))
+			np.random.seed(seed)
+		else:
 			np.random.seed(seed)
 		if self.generate_mass:
 			mass = np.random.uniform(0, 200, size=nb_parameters)
 		else:
 			mass = np.array([mass]*nb_parameters)
 		u0 = np.random.uniform(-self.u_max, self.u_max, size=nb_parameters)
-		indices = np.random.randint(0, self.xvts.shape[0], size=nb_parameters)
-		x, vt = self.xvts[indices].T
+		indices = np.random.randint(0, len(self.xs), size=nb_parameters)
+		x = self.xs[indices]
+		vt = self.vts[indices]
 		theta = self.thetas[indices]
-		vt *= np.random.choice([-1., 1.], size=nb_parameters, replace=True)
 		delta_u = delta_u_from_x(x, mass=mass)
 		tE = tE_from_xvt(x, vt, mass=mass)
 		t0 = np.random.uniform(self.tmin, self.tmax, size=nb_parameters)
