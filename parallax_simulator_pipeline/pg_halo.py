@@ -80,6 +80,11 @@ def compute_i():
 	return i
 
 
+@nb.njit
+def angle(i, v):
+	return np.arctan2(i[1]*v[2]-i[2]*v[1], i[1]*v[1]+i[2]*v[2])
+
+
 def compute_thetas(vr, vtheta, vz, x):
 	v = project_from_gala(vr, vtheta, vz, x)
 	v = np.array([np.zeros(len(v[0])), *v])
@@ -211,12 +216,11 @@ def vt_from_vs(vr, vtheta, vz, x):
 	theta = np.arctan2(sin_theta, cos_theta)
 	cosa = np.cos(theta - l_lmc)
 	sina = np.sin(theta - l_lmc)
-	vtheta1 = vtheta - vrot(r)		# Add the global rotation speed to the deflector speed
 
 	# logging.debug(vr, vtheta, vz, r)
 
-	vhelio_r = vr * cosa - vtheta1 * sina
-	vhelio_theta = vr * sina + vtheta1 * cosa
+	vhelio_r = vr * cosa - vtheta * sina
+	vhelio_theta = vr * sina + vtheta * cosa
 	vhelio_z = vz
 
 	# logging.debug(vhelio_r, vhelio_theta, vhelio_z)
