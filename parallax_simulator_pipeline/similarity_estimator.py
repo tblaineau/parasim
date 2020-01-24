@@ -42,14 +42,14 @@ def integral_curvefit(params, epsabs=1e-8):
 	def minuit_wrap(u0, t0, tE):
 		tE = np.power(10, tE)
 		quadargs = (u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'], params['blend'])
-		val = scipy.integrate.quad(squared_difference, a, b, args=quadargs, epsabs=epsabs)[0]
+		val = scipy.integrate.quad(squared_difference, a, b, args=quadargs, epsabs=epsabs, limit=100)[0]
 		return val
 
 	def de_wrap(x):
 		u0, t0, tE = x
 		tE = np.power(10, tE)
 		quadargs = (u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'], params['blend'])
-		val = scipy.integrate.quad(squared_difference, a, b, args=quadargs, epsabs=epsabs)[0]
+		val = scipy.integrate.quad(squared_difference, a, b, args=quadargs, epsabs=epsabs, limit=100)[0]
 		return val
 
 	m = Minuit(minuit_wrap,
