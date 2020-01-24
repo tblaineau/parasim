@@ -15,7 +15,8 @@ COLOR_FILTERS = {
 a = 5000
 rho_0 = 0.0079
 d_sol = 8500
-vrot_sol = 239 #km/s
+vrot_sol = 239 # km/s
+v0 = 220 # km/s Halo speed
 l_lmc, b_lmc = 280.4652/180.*np.pi, -32.8884/180.*np.pi
 r_lmc = 55000
 r_earth = (150*1e6*units.km).to(units.pc).value
@@ -77,6 +78,11 @@ def compute_i():
 	i = np.cross(K, np.array([1, 0, 0]))
 	i = i/np.linalg.norm(i)
 	return i
+
+
+@nb.njit
+def angle(i, v):
+	return np.arctan2(i[1]*v[2]-i[2]*v[1], i[1]*v[1]+i[2]*v[2])
 
 
 def compute_thetas(vr, vtheta, vz, x):
@@ -210,12 +216,11 @@ def vt_from_vs(vr, vtheta, vz, x):
 	theta = np.arctan2(sin_theta, cos_theta)
 	cosa = np.cos(theta - l_lmc)
 	sina = np.sin(theta - l_lmc)
-	vtheta1 = vtheta - vrot(r)		# Add the global rotation speed to the deflector speed
 
 	# logging.debug(vr, vtheta, vz, r)
 
-	vhelio_r = vr * cosa - vtheta1 * sina
-	vhelio_theta = vr * sina + vtheta1 * cosa
+	vhelio_r = vr * cosa - vtheta * sina
+	vhelio_theta = vr * sina + vtheta * cosa
 	vhelio_z = vz
 
 	# logging.debug(vhelio_r, vhelio_theta, vhelio_z)
@@ -238,16 +243,6 @@ def rho_halo(x):
 
 
 @nb.njit
-def f_vt(v_T, v0=220):
-	return (2*v_T/(v0**2))*np.exp(-v_T**2/(v0**2))
-
-
-@nb.njit
-def p_xvt(x, v_T, mass):
-	return rho_halo(x)/mass*r_lmc*(2*r_0*np.sqrt(mass*x*(1-x))*t_obs*v_T)
-
-
-@nb.njit
 def delta_u_from_x(x, mass):
 	return r(mass)*np.sqrt((1-x)/x)
 
@@ -258,54 +253,35 @@ def tE_from_xvt(x, vt, mass):
 
 
 @nb.njit
-def rho_disk(r, z, sigma, H, R):
-	"""Disk dark matter density"""
-	return sigma/2/H * np.exp(-(r-d_sol)/R) * np.exp(-np.abs(z)/H)
+def rho_halo(x):
+	"""Halo dark matter density"""
+	return rho_0*A/((x*r_lmc)**2-2*x*r_lmc*B+A)
 
 
 @nb.njit
-def gaussian(x, mu, sigma):
-	"""Gaussian"""
-	return 1/np.sqrt(2*np.pi*sigma**2) * np.exp(-(x-mu)**2/2/sigma**2)
+def p_vt_halo(vr, vtheta, vz):
+	"""Particular speed vector probability distribution in halo"""
+	vT = np.sqrt(vr**2 + vtheta**2 + vz**2)
+	return (2 * vT / (v0 ** 2)) * np.exp(-vT ** 2 / (v0 ** 2))
 
 
 @nb.njit
-def p_vt_disk(vr, vtheta, vz, sig_r, sig_theta, sig_z):
-	"""Particular speed vector probability distribution in disk"""
-	return gaussian(vr, 0, sig_r)*gaussian(vtheta, 0, sig_theta)*gaussian(vz, 0, sig_z)
-
-
-@nb.njit
-def pdf_xvs_disk(vec, params):
+def pdf_xvs_halo(vec):
 	"""Disk geometry probabilty density function
 
 	Parameters
 	----------
-	vec : np.array([float, float, float, float)]
-		distance ratio to the LMC and deflector speed vector coordinates (in heliospherical galactic coordinates)
-	sig_r, sig_theta, sig_z : float
-		speed dispersion of deflector particular speed (in heliospherical galactic coordinates)
-	sigma : float
-		column density of the disk
-	H : float
-		height scale
-	R : float
-		radial length scale
 
 	Returns
 	-------
 	float
-		pdf of (x, vr, vtheta, vz) for a disk, toward LMC
+		pdf of (x, vr, vtheta, vz) for the dark matter halo, toward LMC
 
 	"""
 	x, vr, vtheta, vz = vec
-	sig_r, sig_theta, sig_z, sigma, H, R = params
 	if x<0 or x>1:
 		return 0		# x should be in [0, 1]
-	z_sol = 26
-	z = np.sqrt((x*r_lmc*np.sin(b_lmc))**2 + z_sol**2)
-	r = np.sqrt((x*r_lmc*np.cos(b_lmc)*np.cos(l_lmc) - d_sol)**2 + (x*r_lmc*np.cos(b_lmc)*np.sin(l_lmc))**2)
-	return np.sqrt(x*(1-x)) * p_vt_disk(vr, vtheta, vz, sig_r, sig_theta, sig_z) * rho_disk(r, z, sigma, H, R) * np.abs(vt_from_vs(vr, vtheta, vz, x))
+	return np.sqrt(x*(1-x)) * p_vt_halo(vr, vtheta, vz) * rho_halo(x) * np.abs(vt_from_vs(vr, vtheta, vz, x))
 
 
 @nb.njit
@@ -315,9 +291,9 @@ def randomizer_gauss(x):
 
 
 @nb.njit
-def randomize_gauss_total_hardcoded(x):
+def randomize_gauss_halo_hardcoded(x):
 	""" x and vr, vtheta, vz randomizer"""
-	scales = [0.1, 17., 16., 15.]
+	scales = [0.2, 200., 200., 200.]
 	return np.array([np.random.normal(loc=x[0], scale=scales[0]),
 					 np.random.normal(loc=x[1], scale=scales[1]),
 					 np.random.normal(loc=x[2], scale=scales[2]),
@@ -376,7 +352,7 @@ class MicrolensingGenerator:
 	Parameters
 	----------
 	xvt_file : str or int
-		If a str : Path to file containing x - v_T pairs generated through the Hasting-Metropolis algorithm
+		If a str : Path to file containing x - vT pairs generated through the Hasting-Metropolis algorithm
 		If int, number of xvt pairs to pool
 	seed : int
 		Seed used for numpy.seed
@@ -406,7 +382,7 @@ class MicrolensingGenerator:
 		if self.xvt_file:
 			if isinstance(self.xvt_file, int):
 				logging.info(f"Generating {self.xvt_file} x-vt pairs... ")
-				self.xs, vr, vtheta, vz = metropolis_hastings(pdf_xvs_disk, randomize_gauss_total_hardcoded, 1000000, np.array([0.9, 10., 10., 10.]), (sigma_r, sigma_theta, sigma_z, sigma, H, R)).T
+				self.xs, vr, vtheta, vz = metropolis_hastings(pdf_xvs_halo, randomize_gauss_halo_hardcoded, 1000000, np.array([0.9, 10., 10., 10.])).T
 				self.vts = vt_from_vs(vr, vtheta, vz, self.xs)
 				self.thetas = compute_thetas(vr, vtheta, vz, self.xs)
 			else:
