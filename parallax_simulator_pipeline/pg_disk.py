@@ -348,10 +348,10 @@ def metropolis_hastings(func, g, nb_samples, x0, *args):
 	np.array
 		Array containing all the points
 	"""
-	samples = np.empty((nb_samples+100, 4))
+	burnin = 1000
+	samples = np.empty((nb_samples+burnin, 4))
 	current_x = x0
 	accepted=0
-	burnin = 1000
 	rds = np.random.uniform(0., 1., nb_samples+burnin)			# We generate the rs beforehand, for SPEEEED
 	for idx in range(nb_samples+burnin):
 		proposed_x = g(current_x)
