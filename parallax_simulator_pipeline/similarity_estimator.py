@@ -72,11 +72,11 @@ def integral_curvefit(params, epsabs=1e-8):
 		de_bounds = [(0, 3), (a, b), (0, 5)]
 		res = scipy.optimize.differential_evolution(de_wrap, de_bounds, strategy='best1bin', popsize=40)
 		resx = dict(zip(["u0", "t0", "tE"], [res.x[0], res.x[1], np.power(10, res.x[2])]))
-		return [res.fun, resx]
+		return [res.fun] + list(resx.values())
 	else:
 		resx = dict(m.values)
 		resx['tE'] = np.power(10, resx['tE'])
-		return [m.get_fmin().fval, resx]
+		return [m.get_fmin().fval] + list(resx.values())
 
 
 def count_peaks(params, min_prominence=0., base_mag=19.):
@@ -126,7 +126,7 @@ def minmax_distance(params, time_sampling=0.5, pop_size=40):
 	res = scipy.optimize.differential_evolution(fitter_minmax, bounds=bounds, disp=False,
 												mutation=(0.5, 1.0), strategy='currenttobest1bin', recombination=0.9,
 												init=init_pop)
-	return [np.sqrt(res.fun), res.x]
+	return [np.sqrt(res.fun)] + list(res.x)
 
 
 def compute_distances(output_name, distance, parameter_list, nb_samples=None, start=None, end=None, **distance_args):
@@ -185,7 +185,7 @@ def compute_distances(output_name, distance, parameter_list, nb_samples=None, st
 		for idx in range(1,ds.shape[0]):
 			to_assign['p'+str(idx)] = ds[idx]
 	
-	df = df.assign(**to_assign).drop("blend", axis=1)
+	df = df.assign(**to_assign)#.drop("blend", axis=1)
 	df.to_parquet(output_name)
 
 
