@@ -31,7 +31,7 @@ def squared_difference(t, u0, t0, tE, pu0, pt0, ptE, pdu, ptheta, blend):
 # ESTIMATORS #
 
 
-def integral_curvefit(params, epsabs=1e-8):
+def integral_curvefit(params, epsabs=1e-8, epsrel=1e-3):
 	if abs(params["tE"]) < 608.75:
 		a = params['t0'] - 3652.5
 		b = params['t0'] + 3652.5
@@ -42,18 +42,18 @@ def integral_curvefit(params, epsabs=1e-8):
 	def minuit_wrap(u0, t0, tE):
 		tE = np.power(10, tE)
 		quadargs = (u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'], params['blend'])
-		val = scipy.integrate.quad(squared_difference, a, b, args=quadargs, epsabs=epsabs, limit=100)[0]
+		val = scipy.integrate.quad(squared_difference, a, b, args=quadargs, epsrel=epsrel, limit=20)[0]
 		return val
 
 	def de_wrap(x):
 		u0, t0, tE = x
 		tE = np.power(10, tE)
 		quadargs = (u0, t0, tE, params['u0'], params['t0'], params['tE'], params['delta_u'], params['theta'], params['blend'])
-		val = scipy.integrate.quad(squared_difference, a, b, args=quadargs, epsabs=epsabs, limit=100)[0]
+		val = scipy.integrate.quad(squared_difference, a, b, args=quadargs, epsrel=epsrel, limit=20)[0]
 		return val
 
 	m = Minuit(minuit_wrap,
-			   u0=params['u0'],
+			   u0=abs(params['u0']),
 			   t0=params['t0'],
 			   tE=np.log10(np.abs(params['tE'])),
 			   error_u0=0.1,
