@@ -31,7 +31,7 @@ H = 1000.		# height scale
 R = 3500.		# radial length scale
 
 #Halo parameters
-sigma_h = 150 #halo dark matter velocity dispersion
+sigma_h = 120 #halo dark matter velocity dispersion  from https://doi.org/10.1111/j.1365-2966.2005.09367.x
 
 pc_to_km = (units.pc.to(units.km))
 kms_to_pcd = (units.km/units.s).to(units.pc/units.d)
