@@ -30,6 +30,8 @@ sigma = 35		# column density of the disk
 H = 1000.		# height scale
 R = 3500.		# radial length scale
 
+#Halo parameters
+sigma_h = 150 #halo dark matter velocity dispersion
 
 pc_to_km = (units.pc.to(units.km))
 kms_to_pcd = (units.km/units.s).to(units.pc/units.d)
@@ -259,10 +261,10 @@ def rho_halo(x):
 
 
 @nb.njit
-def p_vt_halo(vr, vtheta, vz):
+def p_v_halo(vr, vtheta, vz):
 	"""Particular speed vector probability distribution in halo"""
-	vT = np.sqrt(vr**2 + vtheta**2 + vz**2)
-	return (2 * vT / (v0 ** 2)) * np.exp(-vT ** 2 / (v0 ** 2))
+	v = np.sqrt(vr**2 + vtheta**2 + vz**2)
+	return 4*np.pi*v**2 * np.power(2*np.pi*sigma_h, -3./2.) * np.exp(-v**2 /(2*sigma_h**2))
 
 
 @nb.njit
@@ -281,7 +283,7 @@ def pdf_xvs_halo(vec):
 	x, vr, vtheta, vz = vec
 	if x<0 or x>1:
 		return 0		# x should be in [0, 1]
-	return np.sqrt(x*(1-x)) * p_vt_halo(vr, vtheta, vz) * rho_halo(x) * np.abs(vt_from_vs(vr, vtheta, vz, x))
+	return np.sqrt(x*(1-x)) * p_v_halo(vr, vtheta, vz) * rho_halo(x) * np.abs(vt_from_vs(vr, vtheta, vz, x))
 
 
 @nb.njit
@@ -502,4 +504,4 @@ def generate_parameters_file(global_seed=1995281, masses=[0.1, 1, 10, 30, 100, 3
 		pms.append(dict_of_lists_to_numpy_structured_array(mlg.generate_parameters(mass=mass, nb_parameters=nb_parameters)))
 	pms = np.concatenate(pms)
 	pms = pd.DataFrame(pms).to_records()
-	np.save('parametersTD', pms)
+	np.save('parametersHalo', pms)
