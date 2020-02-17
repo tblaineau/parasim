@@ -213,8 +213,8 @@ def vt_from_vs(vr, vtheta, vz, x):
 		norm of speed vector orthogonally projected to LoS
 	"""
 	r = np.sqrt((x * r_lmc * np.cos(b_lmc) * np.cos(l_lmc) - d_sol) ** 2 + (x * r_lmc * np.cos(b_lmc) * np.sin(l_lmc)) ** 2)
-	sin_theta = (x * r_lmc * np.sin(l_lmc) * np.cos(b_lmc)) / r
-	cos_theta = (x * r_lmc * np.cos(b_lmc) * np.cos(l_lmc) - d_sol) / r
+	sin_theta = (x * r_lmc * np.sin(l_lmc) * np.cos(b_lmc))
+	cos_theta = (x * r_lmc * np.cos(b_lmc) * np.cos(l_lmc) - d_sol)
 	theta = np.arctan2(sin_theta, cos_theta)
 	cosa = np.cos(theta - l_lmc)
 	sina = np.sin(theta - l_lmc)
