@@ -264,7 +264,7 @@ def rho_halo(x):
 def p_v_halo(vr, vtheta, vz):
 	"""Particular speed vector probability distribution in halo"""
 	v = np.sqrt(vr**2 + vtheta**2 + vz**2)
-	return 4*np.pi*v**2 * np.power(2*np.pi*sigma_h, -3./2.) * np.exp(-v**2 /(2*sigma_h**2))
+	return 4*np.pi*v**2 * np.power(2*np.pi*sigma_h**2, -3./2.) * np.exp(-v**2 /(2*sigma_h**2))
 
 
 @nb.njit
