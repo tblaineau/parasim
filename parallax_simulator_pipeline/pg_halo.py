@@ -5,6 +5,9 @@ import numba as nb
 import logging
 import pandas as pd
 
+from parallax_simulator_pipeline.metropolis_hastings import metropolis_hastings, hc_randomizer_halo_LMC
+
+
 COLOR_FILTERS = {
 	'red_E':{'mag':'red_E', 'err': 'rederr_E'},
 	'red_M':{'mag':'red_M', 'err': 'rederr_M'},
@@ -286,67 +289,6 @@ def pdf_xvs_halo(vec):
 	return np.sqrt(x*(1-x)) * p_v_halo(vr, vtheta, vz) * rho_halo(x) * np.abs(vt_from_vs(vr, vtheta, vz, x))
 
 
-@nb.njit
-def randomizer_gauss(x):
-	"""x and vt randomizer"""
-	return np.array([np.random.normal(loc=x[0], scale=0.1), np.random.normal(loc=x[1], scale=300)])
-
-
-@nb.njit
-def randomize_gauss_halo_hardcoded(x):
-	""" x and vr, vtheta, vz randomizer"""
-	scales = [0.2, 200., 200., 200.]
-	return np.array([np.random.normal(loc=x[0], scale=scales[0]),
-					 np.random.normal(loc=x[1], scale=scales[1]),
-					 np.random.normal(loc=x[2], scale=scales[2]),
-					 np.random.normal(loc=x[3], scale=scales[3])])
-
-
-@nb.njit
-def metropolis_hastings(func, g, nb_samples, x0, *args):
-	"""
-	Metropolis-Hasting algorithm to pick random value following the joint probability distribution func
-
-	Parameters
-	----------
-	func : function
-		 Joint probability distribution
-	g : function
-		Randomizer. Choose it wisely to converge quickly and have a smooth distribution
-	nb_samples : int
-		Number of points to return. Need to be large so that the output distribution is smooth
-	x0 : array-like
-		Initial point
-	args :
-		arguments to pass to *func*
-
-
-	Returns
-	-------
-	np.array
-		Array containing all the points
-	"""
-	burnin = 1000
-	samples = np.empty((nb_samples+burnin, 4))
-	current_x = x0
-	accepted=0
-	rds = np.random.uniform(0., 1., nb_samples+burnin)			# We generate the rs beforehand, for SPEEEED
-	for idx in range(nb_samples+burnin):
-		proposed_x = g(current_x)
-		tmp = func(current_x, *args)
-		if tmp!=0:
-			threshold = min(1., func(proposed_x, *args) / tmp)
-		else:
-			threshold = 1
-		if rds[idx] < threshold:
-			current_x = proposed_x
-			accepted+=1
-		samples[idx] = current_x
-	print(accepted, accepted/nb_samples)
-	# We crop the hundred first to avoid outliers from x0
-	return samples[burnin:]
-
-
 class MicrolensingGenerator:
 	"""
 	Class to generate microlensing paramters
@@ -384,7 +326,7 @@ class MicrolensingGenerator:
 		if self.xvt_file:
 			if isinstance(self.xvt_file, int):
 				logging.info(f"Generating {self.xvt_file} x-vt pairs... ")
-				self.xs, vr, vtheta, vz = metropolis_hastings(pdf_xvs_halo, randomize_gauss_halo_hardcoded, 1000000, np.array([0.9, 10., 10., 10.])).T
+				self.xs, vr, vtheta, vz = metropolis_hastings(pdf_xvs_halo, hc_randomizer_halo_LMC, 1000000, np.array([0.9, 10., 10., 10.])).T
 				self.vts = vt_from_vs(vr, vtheta, vz, self.xs)
 				self.thetas = compute_thetas(vr, vtheta, vz, self.xs)
 			else:
@@ -441,13 +383,6 @@ class MicrolensingGenerator:
 			else:
 				params['blend_'+key] = [0] * nb_parameters
 		return params
-
-
-def generate_xvts(output_name, pool_size):
-	"""
-	Generate list of x, vt pairs of size *pool_size* and save it under *output_name*
-	"""
-	np.save(output_name, np.array(metropolis_hastings(pdf_xvt, randomizer_gauss, pool_size, np.array([0.5, 100]), (10.))))
 
 
 # We define parallax parameters.
