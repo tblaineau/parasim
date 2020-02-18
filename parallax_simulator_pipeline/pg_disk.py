@@ -5,6 +5,8 @@ import numba as nb
 import logging
 import pandas as pd
 
+from parallax_simulator_pipeline.metropolis_hastings import metropolis_hastings, hc_randomizer_thickdisk_LMC
+
 COLOR_FILTERS = {
 	'red_E':{'mag':'red_E', 'err': 'rederr_E'},
 	'red_M':{'mag':'red_M', 'err': 'rederr_M'},
@@ -17,7 +19,9 @@ rho_0 = 0.0079
 d_sol = 8500
 vrot_sol = 239 #km/s
 l_lmc, b_lmc = 280.4652/180.*np.pi, -32.8884/180.*np.pi
-r_lmc = 55000
+r_lmc = 8500
+l_gc, b_gc = 0., 0.
+r_gc = 8000
 r_earth = (150*1e6*units.km).to(units.pc).value
 t_obs = ((52697 - 48928) << units.d).to(units.s).value
 
@@ -43,6 +47,8 @@ epsilon = (90. - 66.56070833)*np.pi/180.
 delta_lmc = -69.756111 * np.pi/180.
 alpha_lmc = 80.89417 * np.pi/180.
 
+delta_gc = -(29+(0.+28.1/60.)/60.) /180 *np.pi
+alpha_gc = (15.+(45.+40.04/60.)/60.)/24. * 2*np.pi
 
 def compute_i():
 	""" Compute the i vector coordinates, in heliopsheric galactic coordinates.
@@ -130,7 +136,7 @@ def cartgal_to_heliosphgal(vx, vy, vz):
 	return rot2 @ rot1 @ v
 
 
-v_lmc = cartgal_to_heliosphgal(-57, -226, 221)
+v_lmc = cartgal_to_heliosphgal(-57, -100, 20)
 # Compute LMC speed vector in heliospherical galactic coordinates
 v_sun = cartgal_to_heliosphgal(11.1, 12.24 + vrot_sol, 7.25)
 # Compute speed vector of the Sun in heliospherical galactic coordinates (particular speed + global rotation speed)
@@ -308,67 +314,6 @@ def pdf_xvs_disk(vec, params):
 	return np.sqrt(x*(1-x)) * p_vt_disk(vr, vtheta, vz, sig_r, sig_theta, sig_z) * rho_disk(r, z, sigma, H, R) * np.abs(vt_from_vs(vr, vtheta, vz, x))
 
 
-@nb.njit
-def randomizer_gauss(x):
-	"""x and vt randomizer"""
-	return np.array([np.random.normal(loc=x[0], scale=0.1), np.random.normal(loc=x[1], scale=300)])
-
-
-@nb.njit
-def randomize_gauss_total_hardcoded(x):
-	""" x and vr, vtheta, vz randomizer"""
-	scales = [0.1, 17., 16., 15.]
-	return np.array([np.random.normal(loc=x[0], scale=scales[0]),
-					 np.random.normal(loc=x[1], scale=scales[1]),
-					 np.random.normal(loc=x[2], scale=scales[2]),
-					 np.random.normal(loc=x[3], scale=scales[3])])
-
-
-@nb.njit
-def metropolis_hastings(func, g, nb_samples, x0, *args):
-	"""
-	Metropolis-Hasting algorithm to pick random value following the joint probability distribution func
-
-	Parameters
-	----------
-	func : function
-		 Joint probability distribution
-	g : function
-		Randomizer. Choose it wisely to converge quickly and have a smooth distribution
-	nb_samples : int
-		Number of points to return. Need to be large so that the output distribution is smooth
-	x0 : array-like
-		Initial point
-	args :
-		arguments to pass to *func*
-
-
-	Returns
-	-------
-	np.array
-		Array containing all the points
-	"""
-	burnin = 1000
-	samples = np.empty((nb_samples+burnin, 4))
-	current_x = x0
-	accepted=0
-	rds = np.random.uniform(0., 1., nb_samples+burnin)			# We generate the rs beforehand, for SPEEEED
-	for idx in range(nb_samples+burnin):
-		proposed_x = g(current_x)
-		tmp = func(current_x, *args)
-		if tmp!=0:
-			threshold = min(1., func(proposed_x, *args) / tmp)
-		else:
-			threshold = 1
-		if rds[idx] < threshold:
-			current_x = proposed_x
-			accepted+=1
-		samples[idx] = current_x
-	print(accepted, accepted/nb_samples)
-	# We crop the hundred first to avoid outliers from x0
-	return samples[burnin:]
-
-
 class MicrolensingGenerator:
 	"""
 	Class to generate microlensing paramters
@@ -406,7 +351,7 @@ class MicrolensingGenerator:
 		if self.xvt_file:
 			if isinstance(self.xvt_file, int):
 				logging.info(f"Generating {self.xvt_file} x-vt pairs... ")
-				self.xs, vr, vtheta, vz = metropolis_hastings(pdf_xvs_disk, randomize_gauss_total_hardcoded, 1000000, np.array([0.9, 10., 10., 10.]), (sigma_r, sigma_theta, sigma_z, sigma, H, R)).T
+				self.xs, vr, vtheta, vz = metropolis_hastings(pdf_xvs_disk, hc_randomizer_thickdisk_LMC, 1000000, np.array([0.9, 10., 10., 10.]), (sigma_r, sigma_theta, sigma_z, sigma, H, R)).T
 				self.vts = vt_from_vs(vr, vtheta, vz, self.xs)
 				self.thetas = compute_thetas(vr, vtheta, vz, self.xs)
 			else:
@@ -465,13 +410,6 @@ class MicrolensingGenerator:
 		return params
 
 
-def generate_xvts(output_name, pool_size):
-	"""
-	Generate list of x, vt pairs of size *pool_size* and save it under *output_name*
-	"""
-	np.save(output_name, np.array(metropolis_hastings(pdf_xvt, randomizer_gauss, pool_size, np.array([0.5, 100]), (10.))))
-
-
 # We define parallax parameters.
 PERIOD_EARTH = 365.2422
 alphaS = 80.8941667*np.pi/180.
@@ -481,7 +419,7 @@ t_origin = 51442 								# (21 septembre 1999) #58747 #(21 septembre 2019)
 
 sin_beta = np.cos(epsilon)*np.sin(deltaS) - np.sin(epsilon)*np.cos(deltaS)*np.sin(alphaS)
 beta = np.arcsin(sin_beta) 						# ok because beta is in -pi/2; pi/2
-if abs(beta)==np.pi/2:
+if abs(beta) == np.pi/2:
 	lambda_star = 0
 else:
 	lambda_star = np.sign((np.sin(epsilon)*np.sin(deltaS)+np.cos(epsilon)*np.sin(alphaS)*np.cos(deltaS))/np.cos(beta)) * np.arccos(np.cos(deltaS)*np.cos(alphaS)/np.cos(beta))
@@ -518,7 +456,7 @@ def dict_of_lists_to_numpy_structured_array(pms):
 	return pms
 
 
-def generate_parameters_file(global_seed=1995281, masses=[0.1, 1, 10, 30, 100, 300], nb_parameters=1000):
+def generate_parameters_file(savename, global_seed=1995281, masses=[0.1, 1, 10, 30, 100, 300], nb_parameters=1000):
 	np.random.seed(global_seed)
 	mlg = MicrolensingGenerator(100000000, tmin=48928, tmax=48928+365.25, max_blend=0., u_max=2.)
 	pms = []
@@ -526,4 +464,4 @@ def generate_parameters_file(global_seed=1995281, masses=[0.1, 1, 10, 30, 100, 3
 		pms.append(dict_of_lists_to_numpy_structured_array(mlg.generate_parameters(mass=mass, nb_parameters=nb_parameters)))
 	pms = np.concatenate(pms)
 	pms = pd.DataFrame(pms).to_records()
-	np.save('parametersTD', pms)
+	np.save(savename, pms)

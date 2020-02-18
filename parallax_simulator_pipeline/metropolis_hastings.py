@@ -2,6 +2,22 @@ import numba as nb
 import numpy as np
 
 @nb.njit
+def randomizer_gauss(x):
+	"""x and vt randomizer"""
+	return np.array([np.random.normal(loc=x[0], scale=0.1), np.random.normal(loc=x[1], scale=300)])
+
+
+@nb.njit
+def hc_randomizer_thickdisk_LMC(x):
+	""" x and vr, vtheta, vz randomizer"""
+	scales = [0.1, 17., 16., 15.]
+	return np.array([np.random.normal(loc=x[0], scale=scales[0]),
+					 np.random.normal(loc=x[1], scale=scales[1]),
+					 np.random.normal(loc=x[2], scale=scales[2]),
+					 np.random.normal(loc=x[3], scale=scales[3])])
+
+
+@nb.njit
 def metropolis_hastings(func, g, nb_samples, x0, *args):
 	"""
 	Metropolis-Hasting algorithm to pick random value following the joint probability distribution func
