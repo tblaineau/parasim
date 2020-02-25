@@ -28,6 +28,20 @@ def hc_randomizer_halo_LMC(x):
 
 
 @nb.njit
+def hc_randomizer_GC_halo(x):
+	#x, vr, vtheta, vz, vr_s, vtheta_s, vz_s, r_s, l_s, b_s  + pop
+	scales = [0.05, 20., 20., 20., 5., 5., 5., 1000., np.pi/500., np.pi/500.]
+	return np.array([np.random.normal(loc=x[i], scale=scales[i]) for i in range(len(scales))]+[np.random.uniform(0, 1)])
+
+
+@nb.njit
+def hc_randomizer_GC_thin(x):
+	#x, vr, vtheta, vz, vr_s, vtheta_s, vz_s, r_s, l_s, b_s  + pop
+	scales = [0.01, 20., 20., 20., 5., 5., 5., 100., np.pi/50., np.pi/50.]
+	return np.array([np.random.normal(loc=x[i], scale=scales[i]) for i in range(len(scales))])
+
+
+@nb.njit
 def metropolis_hastings(func, g, nb_samples, x0, *args):
 	"""
 	Metropolis-Hasting algorithm to pick random value following the joint probability distribution func
