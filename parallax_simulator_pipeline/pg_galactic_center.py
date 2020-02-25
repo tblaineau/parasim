@@ -32,6 +32,13 @@ sigma_thin = 50.
 H_thin = 325.
 R_thin = 3500.
 
+# Bar geometry parameters
+PHI = 13*np.pi/180.
+a = 1490.
+b = 580.
+c = 400.
+M_B = 1.7e10
+
 sigma_bar = 110.  # speed dispersion in the bar
 omega_bar = 39.  # km/s/kpc global roation speed
 v_sun = np.array([11.1, 12.24 + vrot_sol, 7.25])  # sun global+peculiar speed
@@ -49,7 +56,6 @@ r_0 = np.sqrt(4*constants.G/(constants.c**2)*r_lmc*units.pc).decompose([units.Ms
 epsilon = (90. - 66.56070833)*np.pi/180.
 delta_lmc = -69.756111 * np.pi/180.
 alpha_lmc = 80.89417 * np.pi/180.
-
 delta_gc = -(29+(0.+28.1/60.)/60.) /180 *np.pi
 alpha_gc = (15.+(45.+40.04/60.)/60.)/24. * 2*np.pi
 # r_s = 8500
@@ -312,3 +318,36 @@ def project_from(x, r_s, l_s, b_s, vr, vtheta, vz, vr_s, vtheta_s, vz_s, source_
 	tvsource_r, tvsource_t, tvsource_z = source_speed(r_s, l_s, b_s, vr_s, vtheta_s, vz_s, source_global_speed)
 	tdef_r, tdef_t, tdef_z = deflector_speed(x, r_s, l_s, b_s, vr, vtheta, vz, deflector_global_speed)
 	return (tdef_r - tvsun_r * (1 - x) - tvsource_r * x), (tdef_t - tvsun_t * (1 - x) - tvsource_t * x), (tdef_z - tvsun_z * (1 - x) - tvsource_z * x)
+
+
+@nb.njit
+def bar_matter_density(r_s, l_s, b_s):
+	"""
+	Compute matter density in M_sol/pc^-3 at l_s, b_s galactic coordinates, distance r_s
+	Parameters
+	----------
+	r_s : float
+		(parsec) Distance from Sun to source
+	l_s : float
+		(radians) Galactic longitude of the source
+	b_s : float
+		(radians) Galactic latitude of the source
+
+	Returns
+	-------
+	Matter density in M_sol/pc^-3
+
+	"""
+	d1 = -r_s*np.cos(l_s)*np.cos(b_s) + d_sol
+	d2 = r_s*np.sin(l_s)*np.cos(b_s)
+	phi = np.arctan2(d2, d1) - PHI
+	if phi == -PHI:
+		r_B = d_sol - r_s
+	else:
+		r_B = np.sqrt(d1**2+d2**2)
+	X = r_B*np.cos(phi)
+	Y = -r_B*np.sin(phi)
+	Z = r_s*np.sin(b_s)
+	r2 = np.sqrt(((X/a)**2+(Y/b)**2)**2 + (Z/c)**4)
+	return M_B/(6.57*np.pi*a*b*c)*np.exp(-r2/2.)
+
