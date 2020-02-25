@@ -56,6 +56,8 @@ def metropolis_hastings(func, g, nb_samples, x0, burnin=1000, *args):
 		Number of points to return. Need to be large so that the output distribution is smooth
 	x0 : array-like
 		Initial point
+	burnin : int
+		Number of early generated value to drop (to avoid bias)
 	args :
 		arguments to pass to *func*
 
