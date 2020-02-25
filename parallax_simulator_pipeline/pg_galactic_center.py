@@ -32,6 +32,9 @@ sigma_thin = 50.
 H_thin = 325.
 R_thin = 3500.
 
+sigma_h = 120  # km/s  halo speed dispersion
+
+
 # Bar geometry parameters
 PHI = 13*np.pi/180.
 a = 1490.
@@ -351,3 +354,52 @@ def bar_matter_density(r_s, l_s, b_s):
 	r2 = np.sqrt(((X/a)**2+(Y/b)**2)**2 + (Z/c)**4)
 	return M_B/(6.57*np.pi*a*b*c)*np.exp(-r2/2.)
 
+
+@nb.njit
+def rho_halo_d(d):
+	"""
+	Matter density in M_sol/pc^-3 at distance d from Galactic Center
+
+	Parameters
+	----------
+	d : float
+		(parsec) Distance from the Galactic Center.
+	"""
+	return rho_0*(core_radius**2+d_sol**2)/(d**2+core_radius**2)
+
+
+@nb.njit
+def p_vdeflector_halo(vr, vtheta, vz):
+	"""Particular speed vector probability distribution in halo"""
+	v = np.sqrt(vr**2 + vtheta**2 + vz**2)
+	return 4*np.pi*v**2 * np.power(2*np.pi*sigma_h**2, -3./2.) * np.exp(-v**2 /(2*sigma_h**2))
+
+
+@nb.njit
+def rho_disk(d, z, sigma, H, R):
+	"""
+	Disk dark matter density in M_sol/pc^-3
+	Parameters
+	----------
+	d : float
+		(parsec) Distance from the Galactic Center.
+	z : float
+		(parsec) Height from galactic plane
+	sigma : float
+		(M_sol/pc^-2) Disk column density parameter
+	H : float
+		(parsec) Characteristic height of the disk
+	R : float
+		(parsec) Characteristic radius of the disk
+
+	Returns
+	-------
+
+	"""
+	return sigma/2/H * np.exp(-(d-d_sol)/R) * np.exp(-np.abs(z)/H)
+
+
+@nb.njit
+def p_vdeflector_disk(vr, vtheta, vz, sig_r, sig_theta, sig_z):
+	"""Particular speed vector probability distribution in disk"""
+	return gaussian(vr, 0, sig_r)*gaussian(vtheta, 0, sig_theta)*gaussian(vz, 0, sig_z)
