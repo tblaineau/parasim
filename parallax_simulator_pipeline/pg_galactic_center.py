@@ -73,7 +73,7 @@ def gaussian(x, mu, sigma):
 
 
 @nb.njit
-def p_vsource_bar(vr_s, vtheta_s, vz_s, sigma_bar=sigma_bar):
+def p_v_bar(vr_s, vtheta_s, vz_s, sigma_bar=sigma_bar):
 	"""Compute probability of source velocity vector in the bar"""
 	return gaussian(vr_s, 0, sigma_bar)*gaussian(vtheta_s, 0, sigma_bar)*gaussian(vz_s, 0, sigma_bar)
 
@@ -369,14 +369,14 @@ def rho_halo_d(d):
 
 
 @nb.njit
-def p_vdeflector_halo(vr, vtheta, vz):
+def p_v_halo(vr, vtheta, vz):
 	"""Particular speed vector probability distribution in halo"""
 	v = np.sqrt(vr**2 + vtheta**2 + vz**2)
 	return 4*np.pi*v**2 * np.power(2*np.pi*sigma_h**2, -3./2.) * np.exp(-v**2 /(2*sigma_h**2))
 
 
 @nb.njit
-def rho_disk(d, z, sigma, H, R):
+def disk_matter_density(d, z, sigma, H, R):
 	"""
 	Disk dark matter density in M_sol/pc^-3
 	Parameters
@@ -400,6 +400,38 @@ def rho_disk(d, z, sigma, H, R):
 
 
 @nb.njit
-def p_vdeflector_disk(vr, vtheta, vz, sig_r, sig_theta, sig_z):
+def p_v_disk(vr, vtheta, vz, sig_r, sig_theta, sig_z):
 	"""Particular speed vector probability distribution in disk"""
 	return gaussian(vr, 0, sig_r)*gaussian(vtheta, 0, sig_theta)*gaussian(vz, 0, sig_z)
+
+
+angular_limits = 10
+
+
+@nb.njit
+def pdf_xvs_GC_halo(vec, params):
+	"""Disk geometry probabilty density function, sources toward GC
+	"""
+	x, vr, vtheta, vz, vr_s, vtheta_s, vz_s, r_s, l_s, b_s, pop = vec
+	sigma_bar, sigma_thin, H_thin, R_thin, sig_r_thin, sig_theta_thin, sig_z_thin = params
+	if x < 0 or x > 1 or l_s < -angular_limits * np.pi / 180 or l_s > angular_limits * np.pi / 180 or b_s < -angular_limits * np.pi / 180 or b_s > angular_limits * np.pi / 180 or r_s < 0 or r_s > 50000:
+		return 0.  # x should be in [0, 1]
+	z_sol = 26
+	z = np.sqrt((x * r_s * np.sin(b_s)) ** 2 + z_sol ** 2)
+	r = np.sqrt((x * r_s * np.cos(b_s) * np.cos(l_s) - d_sol) ** 2 + (x * r_s * np.cos(b_s) * np.sin(l_s)) ** 2)
+	if pop > 0.5:
+		# bar source
+		return (np.sqrt(x * (1 - x))
+				* p_v_halo(vr, vtheta, vz)
+				* rho_halo_d(np.sqrt(r ** 2 + z ** 2))
+				* np.abs(v_T_from(x, r_s, l_s, b_s, vr, vtheta, vz, vr_s, vtheta_s, vz_s, bar_global_speed, null_global_speed))
+				* bar_matter_density(r_s, l_s, b_s)
+				* p_v_bar(vr_s, vtheta_s, vz_s, sigma_bar))
+	else:
+		# thin disk source
+		return (np.sqrt(x * (1 - x))
+				* p_v_halo(vr, vtheta, vz)
+				* rho_halo_d(np.sqrt(r ** 2 + z ** 2))
+				* np.abs(v_T_from(x, r_s, l_s, b_s, vr, vtheta, vz, vr_s, vtheta_s, vz_s, disk_global_speed, null_global_speed))
+				* disk_matter_density(r, z, sigma_thin, H_thin, R_thin)
+				* p_v_disk(vr_s, vtheta_s, vz_s, sig_r_thin, sig_theta_thin, sig_z_thin))
