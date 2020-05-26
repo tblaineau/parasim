@@ -456,9 +456,9 @@ def dict_of_lists_to_numpy_structured_array(pms):
 	return pms
 
 
-def generate_parameters_file(savename, global_seed=1995281, masses=[0.1, 1, 10, 30, 100, 300], nb_parameters=1000):
+def generate_parameters_file(savename, global_seed=1995281, masses=[0.1, 1, 10, 30, 100, 300], nb_parameters=1000, max_blend=0.):
 	np.random.seed(global_seed)
-	mlg = MicrolensingGenerator(100000000, tmin=48928, tmax=48928+365.25, max_blend=0., u_max=2.)
+	mlg = MicrolensingGenerator(100000000, tmin=48928, tmax=48928+365.25, max_blend=max_blend, u_max=2.)
 	pms = []
 	for mass in masses:
 		pms.append(dict_of_lists_to_numpy_structured_array(mlg.generate_parameters(mass=mass, nb_parameters=nb_parameters)))
