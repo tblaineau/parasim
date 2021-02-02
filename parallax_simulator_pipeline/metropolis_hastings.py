@@ -20,7 +20,7 @@ def hc_randomizer_thickdisk_LMC(x):
 @nb.njit
 def hc_randomizer_halo_LMC(x):
 	""" x and vr, vtheta, vz randomizer"""
-	scales = [0.2, 200., 200., 200.]
+	scales = [0.1, 150., 150., 150.]
 	return np.array([np.random.normal(loc=x[0], scale=scales[0]),
 					 np.random.normal(loc=x[1], scale=scales[1]),
 					 np.random.normal(loc=x[2], scale=scales[2]),
