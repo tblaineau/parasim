@@ -42,7 +42,7 @@ def hc_randomizer_GC_thin(x):
 
 
 @nb.njit
-def metropolis_hastings(func, g, nb_samples, x0, *args):
+def metropolis_hastings(func, g, nb_samples, x0, burnin=1000, *args):
 	"""
 	Metropolis-Hasting algorithm to pick random value following the joint probability distribution func
 
@@ -67,7 +67,6 @@ def metropolis_hastings(func, g, nb_samples, x0, *args):
 	np.array
 		Array containing all the points
 	"""
-	burnin = 1000
 	samples = np.empty((nb_samples+burnin, len(x0)))
 	current_x = x0
 	accepted=0
