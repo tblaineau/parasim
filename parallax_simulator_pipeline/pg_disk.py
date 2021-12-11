@@ -29,7 +29,7 @@ t_obs = ((52697 - 48928) << units.d).to(units.s).value
 sigma_r = 56.1
 sigma_theta = 46.1
 sigma_z = 35.1	# speed dispersion of deflector particular speed (in heliospherical galactic coordinates)
-sigma = 35		# column density of the disk
+sigma = 35.		# column density of the disk
 H = 1000.		# height scale
 R = 3500.		# radial length scale
 
@@ -136,7 +136,7 @@ def cartgal_to_heliosphgal(vx, vy, vz):
 	return rot2 @ rot1 @ v
 
 
-v_lmc = cartgal_to_heliosphgal(-57, -100, 20)
+v_lmc = cartgal_to_heliosphgal(-57, -226, 221)
 # Compute LMC speed vector in heliospherical galactic coordinates
 v_sun = cartgal_to_heliosphgal(11.1, 12.24 + vrot_sol, 7.25)
 # Compute speed vector of the Sun in heliospherical galactic coordinates (particular speed + global rotation speed)

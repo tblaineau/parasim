@@ -34,7 +34,7 @@ H = 1000.		# height scale
 R = 3500.		# radial length scale
 
 #Halo parameters
-sigma_h = 120 #halo dark matter velocity dispersion  from https://doi.org/10.1111/j.1365-2966.2005.09367.x
+sigma_h = 155 #halo dark matter velocity dispersion  from https://doi.org/10.1111/j.1365-2966.2005.09367.x
 
 pc_to_km = (units.pc.to(units.km))
 kms_to_pcd = (units.km/units.s).to(units.pc/units.d)
@@ -243,11 +243,6 @@ def vt_from_vs(vr, vtheta, vz, x):
 
 
 @nb.njit
-def rho_halo(x):
-	return rho_0*A/((x*r_lmc)**2-2*x*r_lmc*B+A)
-
-
-@nb.njit
 def delta_u_from_x(x, mass):
 	return r(mass)*np.sqrt((1-x)/x)
 
@@ -431,12 +426,12 @@ def dict_of_lists_to_numpy_structured_array(pms):
 	return pms
 
 
-def generate_parameters_file(global_seed=1995281, masses=[0.1, 1, 10, 30, 100, 300], nb_parameters=1000):
+def generate_parameters_file(savename, global_seed=1995281, masses=[0.1, 1, 10, 30, 100, 300], nb_parameters=1000, max_blend=0.):
 	np.random.seed(global_seed)
-	mlg = MicrolensingGenerator(100000000, tmin=48928, tmax=48928+365.25, max_blend=0., u_max=2.)
+	mlg = MicrolensingGenerator(100000000, tmin=48928, tmax=48928+365.25, max_blend=max_blend, u_max=2.)
 	pms = []
 	for mass in masses:
 		pms.append(dict_of_lists_to_numpy_structured_array(mlg.generate_parameters(mass=mass, nb_parameters=nb_parameters)))
 	pms = np.concatenate(pms)
 	pms = pd.DataFrame(pms).to_records()
-	np.save('parametersHalo', pms)
+	np.save(savename, pms)
