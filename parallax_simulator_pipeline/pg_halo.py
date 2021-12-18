@@ -215,7 +215,7 @@ def vt_from_vs(vr, vtheta, vz, x):
 	vt : float
 		norm of speed vector orthogonally projected to LoS
 	"""
-	r = np.sqrt((x * r_lmc * np.cos(b_lmc) * np.cos(l_lmc) - d_sol) ** 2 + (x * r_lmc * np.cos(b_lmc) * np.sin(l_lmc)) ** 2)
+	#r = np.sqrt((x * r_lmc * np.cos(b_lmc) * np.cos(l_lmc) - d_sol) ** 2 + (x * r_lmc * np.cos(b_lmc) * np.sin(l_lmc)) ** 2)
 	sin_theta = (x * r_lmc * np.sin(l_lmc) * np.cos(b_lmc))
 	cos_theta = (x * r_lmc * np.cos(b_lmc) * np.cos(l_lmc) - d_sol)
 	theta = np.arctan2(sin_theta, cos_theta)
@@ -262,7 +262,7 @@ def rho_halo(x):
 def p_v_halo(vr, vtheta, vz):
 	"""Particular speed vector probability distribution in halo"""
 	v = np.sqrt(vr**2 + vtheta**2 + vz**2)
-	return 4*np.pi*v**2 * np.power(2*np.pi*sigma_h**2, -3./2.) * np.exp(-v**2 /(2*sigma_h**2))
+	return 4*np.pi * np.power(2*np.pi*sigma_h**2, -3./2.) * np.exp(-v**2 /(2*sigma_h**2))
 
 
 @nb.njit
